@@ -6,24 +6,33 @@
 <hr/>
 
 <form id="add-form">
-    <input
-        placeholder="Your name..."
-        required
-        type="text"
-        name="user_name"
-    />
-    <input
-        placeholder="Your score..."
-        required
-        type="number"
-        name="score"
-    />
-    <input
-        placeholder="anything else?"
-        required
-        type="text"
-        name="free_data"
-    />
+    <div class="form-field">
+        <label for="user_name">User Name</label>
+        <input
+            placeholder="Your name..."
+            required
+            type="text"
+            name="user_name" id="user_name"
+        />
+    </div>
+    <div class="form-field">
+        <label for="score">Score</label>
+        <input
+            placeholder="Your score..."
+            required
+            type="number"
+            name="score" id="score"
+        />
+    </div>
+    <div class="form-field">
+        <label for="free_data">Free Data</label>
+        <input
+            placeholder="anything else?"
+            required
+            type="text"
+            name="free_data" id="free_data"
+        />
+    </div>
     <button
         hx-post="/leaderboard/games/{{game.id}}"
         hx-trigger="click"
