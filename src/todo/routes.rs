@@ -7,11 +7,15 @@ use axum::{
 use serde_json::json;
 use std::convert::Infallible;
 use std::time::Duration;
+use tokio::sync::broadcast::Sender;
 use tokio_stream::wrappers::BroadcastStream;
 use tokio_stream::{Stream, StreamExt as _};
 
-use crate::models::{MutationKind, Todo, TodoNew, TodoUpdate};
-use crate::{errors::ApiError, router::AppState, router::TodosStream, templates};
+use super::models::{MutationKind, Todo, TodoNew, TodoUpdate};
+use crate::{errors::ApiError, router::AppState};
+use super::templates;
+
+pub type TodosStream = Sender<TodoUpdate>;
 
 pub async fn home() -> impl IntoResponse {
     templates::HelloTemplate
@@ -33,7 +37,7 @@ pub async fn styles() -> Result<impl IntoResponse, ApiError> {
     let response = Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "text/css")
-        .body(include_str!("../templates/styles.css").to_owned())?;
+        .body(include_str!("../../templates/styles.css").to_owned())?;
 
     Ok(response)
 }

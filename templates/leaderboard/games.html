@@ -1,0 +1,14 @@
+<div id="games">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>View Leaderboard</th>
+            </tr>
+        </thead>
+        <tbody id="games-content">
+            {% for game in games %} {% include "game.html" %} {% endfor %}
+        </tbody>
+    </table>
+</div>

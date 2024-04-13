@@ -1,0 +1,16 @@
+<div id="leaderboard">
+    <h1>{{game_name}}</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Score</th>
+            <th>Username</th>
+            <th>Free Data</th>
+        </tr>
+        </thead>
+        <tbody id="leaderboard-content">
+        {% for entry in entries %} {% include "leaderboard_entry.html" %} {% endfor %}
+        </tbody>
+    </table>
+</div>

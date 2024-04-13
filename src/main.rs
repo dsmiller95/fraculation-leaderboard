@@ -2,8 +2,8 @@ use sqlx::PgPool;
 mod errors;
 mod models;
 mod router;
-mod routes;
-mod templates;
+mod leaderboard;
+mod todo;
 
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {
