@@ -1,7 +1,9 @@
 {% extends "base.html" %} {% block title %}Leaderboard {{game.description}} {% endblock %} {% block content
 %}
-<h1>{{game.description}}</h1>
-<h1>Leaderboard</h1>
+<h1>Leaderboard: {{game.description}}</h1>
+<a href="/leaderboard">Back to game list</a>
+
+<hr/>
 
 <form id="add-form">
     <input
