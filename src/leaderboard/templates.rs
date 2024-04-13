@@ -23,8 +23,14 @@ pub struct GameNewTemplate {
 
 #[derive(Template)]
 #[template(path = "leaderboard/leaderboard.html")]
-pub struct Leaderboard {
-    pub game_name: String,
+pub struct LeaderboardTemplate {
+    pub game: models::Game,
+}
+
+
+#[derive(Template)]
+#[template(path = "leaderboard/leaderboard_entries.html")]
+pub struct LeaderboardEntriesTemplate {
     pub entries: Vec<models::LeaderboardEntry>,
 }
 

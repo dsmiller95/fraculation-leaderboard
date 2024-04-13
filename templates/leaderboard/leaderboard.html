@@ -1,16 +1,44 @@
-<div id="leaderboard">
-    <h1>{{game_name}}</h1>
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Score</th>
-            <th>Username</th>
-            <th>Free Data</th>
-        </tr>
-        </thead>
-        <tbody id="leaderboard-content">
-        {% for entry in entries %} {% include "leaderboard_entry.html" %} {% endfor %}
-        </tbody>
-    </table>
+{% extends "base.html" %} {% block title %}Leaderboard {{game.description}} {% endblock %} {% block content
+%}
+<h1>{{game.description}}</h1>
+<h1>Leaderboard</h1>
+
+<form id="add-form">
+    <input
+        placeholder="Your name..."
+        required
+        type="text"
+        name="user_name"
+    />
+    <input
+        placeholder="Your score..."
+        required
+        type="number"
+        name="score"
+    />
+    <input
+        placeholder="anything else?"
+        required
+        type="text"
+        name="free_data"
+    />
+    <button
+        hx-post="/leaderboard/games/{{game.id}}"
+        hx-trigger="click"
+        hx-target="#leaderboard-content"
+        hx-swap="beforeend"
+    >
+        Add
+    </button>
+</form>
+<div
+    id="list"
+    hx-get="/leaderboard/games/{{game.id}}"
+    hx-target="this"
+    hx-trigger="load"
+    hx-swap="outerHTML"
+>
+    Loading...
 </div>
+
+{% endblock %}

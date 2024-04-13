@@ -54,7 +54,8 @@ pub fn init_router(db: PgPool) -> Router {
             .route("/leaderboard/stream", get(stream))
             .route("/leaderboard/styles.css", get(styles))
             .route("/leaderboard/games", get(fetch_games).post(create_game))
-            .route("/leaderboard/games/:id", get(fetch_leaderboard).post(create_leaderboard_entry))
+            .route("/leaderboard/:id", get(leaderboard_home))
+            .route("/leaderboard/games/:id", get(fetch_leaderboard_entries).post(create_leaderboard_entry))
             .route("/leaderboard/games/stream", get(handle_stream))
             .layer(Extension(update_stream))
     }

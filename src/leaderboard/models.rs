@@ -16,7 +16,7 @@ pub struct GameNew {
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct LeaderboardEntry {
     pub id: i32,
-    pub score: f32,
+    pub score: f64,
     pub game_id: i32,
     pub user_name: String,
     pub free_data: String

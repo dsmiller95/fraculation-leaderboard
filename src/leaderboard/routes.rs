@@ -68,7 +68,7 @@ pub async fn create_game(
     templates::GameNewTemplate { game }
 }
 
-pub async fn fetch_leaderboard(
+pub async fn leaderboard_home(
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -79,6 +79,13 @@ pub async fn fetch_leaderboard(
         .unwrap_or(
             Game { description: "null game".into(), id: game_id}
         );
+    Ok(templates::LeaderboardTemplate { game })
+}
+
+pub async fn fetch_leaderboard_entries(
+    State(state): State<AppState>,
+    Path(game_id): Path<i32>,
+) -> Result<impl IntoResponse, ApiError> {
     let entries = sqlx::query_as::<_, LeaderboardEntry>(
         "SELECT * FROM leaderboard_entries WHERE game_id = $1")
         .bind(game_id)
@@ -97,15 +104,15 @@ pub async fn fetch_leaderboard(
             },
         ]);
 
-    Ok(templates::Leaderboard { game_name: game.description, entries })
+    Ok(templates::LeaderboardEntriesTemplate { entries })
 }
 
 macro_rules! bind_all {
     // Base case:
-    ($i:ident, $x:expr) => (QueryAs::bind($i, $x));
+    ($i:expr, $x:expr) => (QueryAs::bind($i, $x));
     // `$x` followed by at least one `$y,`
-    ($i:ident, $x:expr, $($y:expr),+) => (
-        QueryAs::bind(bind_all!($i, $($y),+), $x)
+    ($i:expr, $x:expr, $($y:expr),+) => (
+        bind_all!(QueryAs::bind($i, $x), $($y),+)
     )
 }
 
