@@ -87,7 +87,11 @@ pub async fn fetch_leaderboard_entries(
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
     let entries = sqlx::query_as::<_, LeaderboardEntry>(
-        "SELECT * FROM leaderboard_entries WHERE game_id = $1")
+        "SELECT * \
+            FROM leaderboard_entries \
+            WHERE game_id = 1 \
+            ORDER BY score desc \
+            LIMIT 10;")
         .bind(game_id)
         .fetch_all(&state.db)
         .await
