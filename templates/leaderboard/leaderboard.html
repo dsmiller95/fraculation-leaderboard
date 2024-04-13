@@ -34,7 +34,7 @@
         />
     </div>
     <button
-        hx-post="/leaderboard/games/{{game.id}}"
+        hx-post="/leaderboard/games/{{game.id}}/entries"
         hx-trigger="click"
         hx-target="#leaderboard-content"
         hx-swap="afterbegin"
@@ -44,7 +44,7 @@
 </form>
 <div
     id="list"
-    hx-get="/leaderboard/games/{{game.id}}"
+    hx-get="/leaderboard/games/{{game.id}}/entries"
     hx-target="this"
     hx-trigger="load"
     hx-swap="outerHTML"

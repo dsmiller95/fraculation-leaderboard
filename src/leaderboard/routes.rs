@@ -68,7 +68,7 @@ pub async fn create_game(
     templates::GameNewTemplate { game }
 }
 
-pub async fn leaderboard_home(
+pub async fn game_home(
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -79,7 +79,7 @@ pub async fn leaderboard_home(
         .unwrap_or(
             Game { description: "null game".into(), id: game_id}
         );
-    Ok(templates::LeaderboardTemplate { game })
+    Ok(templates::GameTemplate { game })
 }
 
 pub async fn fetch_leaderboard_entries(

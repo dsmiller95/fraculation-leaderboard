@@ -1,21 +1,24 @@
 {% extends "base.html" %} {% block title %}Leaderboard{% endblock %} {% block content
 %}
 <h1>Shuttle Leaderboard - Home</h1>
-<a href="/leaderboard/stream">Event stream</a>
+<a href="/leaderboard/stream_page">Event stream</a>
 <h1>Shuttle Leaderboard</h1>
 
 <form id="add-form">
-    <input
-        placeholder="Your game description..."
-        required
-        type="text"
-        name="description"
-    />
+    <div>
+        <label for="description">Game Name</label>
+        <input
+            placeholder="Your game name..."
+            required
+            type="text"
+            name="description" id="description"
+        />
+    </div>
     <button
         hx-post="/leaderboard/games"
         hx-trigger="click"
         hx-target="#games-content"
-        hx-swap="beforeend"
+        hx-swap="afterbegin"
     >
         Add
     </button>

@@ -51,12 +51,12 @@ pub fn init_router(db: PgPool) -> Router {
         let update_stream: LeaderboardStream = tx;
         router = router
             .route("/leaderboard", get(home))
-            .route("/leaderboard/stream", get(stream))
+            .route("/leaderboard/stream_page", get(stream))
+            .route("/leaderboard/stream", get(handle_stream))
             .route("/leaderboard/styles.css", get(styles))
             .route("/leaderboard/games", get(fetch_games).post(create_game))
-            .route("/leaderboard/:id", get(leaderboard_home))
-            .route("/leaderboard/games/:id", get(fetch_leaderboard_entries).post(create_leaderboard_entry))
-            .route("/leaderboard/games/stream", get(handle_stream))
+            .route("/leaderboard/games/:id", get(game_home))
+            .route("/leaderboard/games/:id/entries", get(fetch_leaderboard_entries).post(create_leaderboard_entry))
             .layer(Extension(update_stream))
     }
 

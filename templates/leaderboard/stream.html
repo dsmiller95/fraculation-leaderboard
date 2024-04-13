@@ -1,9 +1,9 @@
 {% extends "base.html" %} {% block title %} Server Sent Event Stream {% endblock %} {% block
 content %}
 <h1>Shuttle leaderboard - Event Stream</h1>
-<a href="/">Home</a>
+<a href="/leaderboard">Home</a>
 <p>Live changes to the leaderboard entries list will appear below.</p>
-<div hx-sse="connect:/leaderboard/games/stream swap:message" hx-swap="beforeend">
+<div hx-sse="connect:/leaderboard/stream swap:message" hx-swap="beforeend">
     <div></div>
 </div>
 {% endblock %}

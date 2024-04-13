@@ -23,7 +23,7 @@ pub struct GameNewTemplate {
 
 #[derive(Template)]
 #[template(path = "leaderboard/leaderboard.html")]
-pub struct LeaderboardTemplate {
+pub struct GameTemplate {
     pub game: models::Game,
 }
 
