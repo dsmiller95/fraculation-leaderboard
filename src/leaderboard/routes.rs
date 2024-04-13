@@ -39,7 +39,7 @@ pub async fn styles() -> Result<impl IntoResponse, ApiError> {
 }
 
 pub async fn fetch_games(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
-    let games = sqlx::query_as::<_, Game>("SELECT * FROM GAMES")
+    let games = sqlx::query_as::<_, Game>("SELECT * FROM games")
         .fetch_all(&state.db)
         .await
         .unwrap_or(vec![
@@ -56,7 +56,7 @@ pub async fn create_game(
 ) -> impl IntoResponse {
     let mock_desc = form.description.clone();
     let game = sqlx::query_as::<_, Game>(
-        "INSERT INTO GAMES (description) VALUES ($1) RETURNING id, description",
+        "INSERT INTO games (description) VALUES ($1) RETURNING id, description",
     )
     .bind(form.description)
     .fetch_one(&state.db)
@@ -72,14 +72,16 @@ pub async fn fetch_leaderboard(
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let game = sqlx::query_as::<_, Game>("SELECT id, description FROM GAMES WHERE id = $1")
+    let game = sqlx::query_as::<_, Game>("SELECT * FROM games WHERE id = $1")
         .bind(game_id)
         .fetch_one(&state.db)
         .await
         .unwrap_or(
             Game { description: "null game".into(), id: game_id}
         );
-    let entries = sqlx::query_as::<_, LeaderboardEntry>("SELECT * FROM GAMES")
+    let entries = sqlx::query_as::<_, LeaderboardEntry>(
+        "SELECT * FROM leaderboard_entries WHERE game_id = $1")
+        .bind(game_id)
         .fetch_all(&state.db)
         .await
         .unwrap_or(vec![
@@ -114,7 +116,9 @@ pub async fn create_leaderboard_entry(
     Form(form): Form<LeaderboardEntryNew>,
 ) -> impl IntoResponse {
     let leaderboard_entry = sqlx::query_as::<_, LeaderboardEntry>(
-        "INSERT INTO LEADERBOARD_ENTRIES (game_id, score, user_name, free_data) VALUES ($1, $2, $3, $4) RETURNING id, score, game_id, user_name, free_data",
+        "INSERT INTO leaderboard_entries (game_id, score, user_name, free_data) \
+        VALUES ($1, $2, $3, $4) \
+        RETURNING id, score, game_id, user_name, free_data",
     );
     let leaderboard_entry = bind_all!(leaderboard_entry, game_id, form.score, form.user_name, form.free_data);
     let leaderboard_entry = leaderboard_entry
