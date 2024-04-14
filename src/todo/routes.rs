@@ -33,15 +33,6 @@ pub async fn fetch_todos(State(state): State<AppState>) -> Result<impl IntoRespo
     Ok(templates::Records { todos })
 }
 
-pub async fn styles() -> Result<impl IntoResponse, ApiError> {
-    let response = Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "text/css")
-        .body(include_str!("../../templates/styles.css").to_owned())?;
-
-    Ok(response)
-}
-
 pub async fn create_todo(
     State(state): State<AppState>,
     Extension(tx): Extension<TodosStream>,

@@ -1,12 +1,14 @@
 use askama::Template;
-use askama_axum::IntoResponse;
+use askama_axum::{IntoResponse, Response};
 use axum::{
     routing::{delete, get},
     Extension, Router,
 };
+use axum::http::StatusCode;
 use sqlx::PgPool;
 
 use tokio::sync::broadcast::channel;
+use crate::errors::ApiError;
 use crate::todo;
 use crate::leaderboard;
 
@@ -21,12 +23,22 @@ pub struct AppState {
 pub struct RootHelloTemplate;
 
 pub async fn root_home() -> impl IntoResponse { RootHelloTemplate }
+pub async fn styles() -> Result<impl IntoResponse, ApiError> {
+    let response = Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "text/css")
+        .body(include_str!("../templates/styles.css").to_owned())?;
+
+    Ok(response)
+}
+
 
 pub fn init_router(db: PgPool) -> Router {
     let state = AppState { db };
 
     let mut router = Router::new()
         .route("/", get(root_home))
+        .route("/styles.css", get(styles))
         ;
     {
         use todo::routes::*;

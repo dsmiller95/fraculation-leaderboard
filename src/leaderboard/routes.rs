@@ -29,23 +29,10 @@ pub async fn stream() -> impl IntoResponse {
     templates::StreamTemplate
 }
 
-pub async fn styles() -> Result<impl IntoResponse, ApiError> {
-    let response = Response::builder()
-        .status(StatusCode::OK)
-        .header("Content-Type", "text/css")
-        .body(include_str!("../../templates/styles.css").to_owned())?;
-
-    Ok(response)
-}
-
 pub async fn fetch_games(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     let games = sqlx::query_as::<_, Game>("SELECT * FROM games")
         .fetch_all(&state.db)
-        .await
-        .unwrap_or(vec![
-            Game { description: "demo game".into(), id: 22},
-            Game { description: "demo game two".into(), id: 23}
-        ]);
+        .await?;
 
     Ok(templates::Games { games })
 }
@@ -53,19 +40,15 @@ pub async fn fetch_games(State(state): State<AppState>) -> Result<impl IntoRespo
 pub async fn create_game(
     State(state): State<AppState>,
     Form(form): Form<GameNew>,
-) -> impl IntoResponse {
-    let mock_desc = form.description.clone();
+) -> Result<impl IntoResponse, ApiError> {
     let game = sqlx::query_as::<_, Game>(
         "INSERT INTO games (description) VALUES ($1) RETURNING id, description",
     )
     .bind(form.description)
     .fetch_one(&state.db)
-    .await
-    .unwrap_or(
-        Game { description: mock_desc, id: 20}
-    );
+    .await?;
 
-    templates::GameNewTemplate { game }
+    Ok(templates::GameNewTemplate { game })
 }
 
 pub async fn game_home(
@@ -75,10 +58,7 @@ pub async fn game_home(
     let game = sqlx::query_as::<_, Game>("SELECT * FROM games WHERE id = $1")
         .bind(game_id)
         .fetch_one(&state.db)
-        .await
-        .unwrap_or(
-            Game { description: "null game".into(), id: game_id}
-        );
+        .await?;
     Ok(templates::GameTemplate { game })
 }
 
@@ -94,19 +74,7 @@ pub async fn fetch_leaderboard_entries(
             LIMIT 10;")
         .bind(game_id)
         .fetch_all(&state.db)
-        .await
-        .unwrap_or(vec![
-            LeaderboardEntry {
-                id: 2, score: 33.0, game_id,
-                user_name: "user null".into(),
-                free_data: "".into(),
-            },
-            LeaderboardEntry {
-                id: 5, score: 33.2412, game_id,
-                user_name: "user nulllll".into(),
-                free_data: "{\"some\": 281}".into(),
-            },
-        ]);
+        .await?;
 
     Ok(templates::LeaderboardEntriesTemplate { entries })
 }
@@ -125,7 +93,7 @@ pub async fn create_leaderboard_entry(
     Path(game_id): Path<i32>,
     Extension(tx): Extension<LeaderboardStream>,
     Form(form): Form<LeaderboardEntryNew>,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse, ApiError> {
     let leaderboard_entry = sqlx::query_as::<_, LeaderboardEntry>(
         "INSERT INTO leaderboard_entries (game_id, score, user_name, free_data) \
         VALUES ($1, $2, $3, $4) \
@@ -134,8 +102,7 @@ pub async fn create_leaderboard_entry(
     let leaderboard_entry = bind_all!(leaderboard_entry, game_id, form.score, form.user_name, form.free_data);
     let leaderboard_entry = leaderboard_entry
         .fetch_one(&state.db)
-        .await
-        .unwrap();
+        .await?;
 
     if tx
         .send(LeaderboardUpdate {
@@ -150,7 +117,7 @@ pub async fn create_leaderboard_entry(
         );
     }
 
-    templates::LeaderboardEntryNewTemplate { entry: leaderboard_entry }
+    Ok(templates::LeaderboardEntryNewTemplate { entry: leaderboard_entry })
 }
 
 // TODO: a unique stream per game?
