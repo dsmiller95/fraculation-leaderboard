@@ -2,8 +2,6 @@ use std::convert::Infallible;
 use std::time::Duration;
 
 use axum::{Extension, extract::{Path, State}, Form, Json, response::{IntoResponse, Sse, sse::Event}};
-use axum::http::header::ACCEPT;
-use axum::http::HeaderMap;
 use serde_json::json;
 use sqlx::query::QueryAs;
 use tokio::sync::broadcast::Sender;
@@ -13,7 +11,7 @@ use tokio_stream::wrappers::BroadcastStream;
 use crate::{errors::ApiError, router::AppState};
 use crate::models::MutationKind;
 
-use super::heterogenous_response::{characterize_accept_type, ResponseType};
+use super::heterogenous_response::AcceptType;
 use super::models::*;
 use super::templates;
 
@@ -27,17 +25,14 @@ pub async fn stream() -> impl IntoResponse {
     templates::StreamTemplate
 }
 
-pub async fn fetch_games(headers: HeaderMap, State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
+pub async fn fetch_games(accept_type: AcceptType, State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     let games = sqlx::query_as::<_, Game>("SELECT * FROM games")
         .fetch_all(&state.db)
         .await?;
 
-    let accept_type = characterize_accept_type(headers.get(ACCEPT))
-        .unwrap_or(ResponseType::HTMX);
-
     match accept_type {
-        ResponseType::HTMX => Ok((templates::Games { games }).into_response()),
-        ResponseType::JSON => Ok(Json(games).into_response())
+        AcceptType::HTMX => Ok((templates::Games { games }).into_response()),
+        AcceptType::JSON => Ok(Json(games).into_response())
     }
 }
 

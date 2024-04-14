@@ -1,12 +1,29 @@
-use axum::http::HeaderValue;
+use std::convert::Infallible;
+use axum::async_trait;
+use axum::extract::{FromRequest, FromRequestParts};
+use axum::http::{HeaderValue};
+use axum::http::header::ACCEPT;
+use axum::http::request::Parts;
 
-pub enum ResponseType{
+pub enum AcceptType {
     HTMX,
     JSON
 }
 
-pub fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<ResponseType> {
-    use ResponseType::*;
+#[async_trait]
+impl<S> FromRequestParts<S> for AcceptType
+{
+    type Rejection = Infallible;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let accept_header = parts.headers.get(ACCEPT);
+        let accept_type = characterize_accept_type(accept_header);
+        Ok(accept_type.unwrap_or(AcceptType::HTMX))
+    }
+}
+
+fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<AcceptType> {
+    use AcceptType::*;
     let Some(accept) = accept else {
         return None
     };
