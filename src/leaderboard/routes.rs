@@ -89,7 +89,7 @@ pub async fn fetch_leaderboard_entries(
     let entries = sqlx::query_as::<_, LeaderboardEntry>(
         "SELECT * \
             FROM leaderboard_entries \
-            WHERE game_id = 1 \
+            WHERE game_id = $1 \
             ORDER BY score desc \
             LIMIT 10;")
         .bind(game_id)
