@@ -5,6 +5,7 @@ use axum::http::{HeaderValue};
 use axum::http::header::ACCEPT;
 use axum::http::request::Parts;
 
+#[derive(Copy, Clone)]
 pub enum AcceptType {
     HTMX,
     JSON

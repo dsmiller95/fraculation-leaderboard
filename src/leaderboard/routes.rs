@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 use std::time::Duration;
 
-use axum::{Extension, extract::{Path, State}, Form, Json, response::{IntoResponse, Sse, sse::Event}};
+use axum::{Extension, extract::{Path, State}, Json, response::{IntoResponse, Sse, sse::Event}};
 use serde_json::json;
 use sqlx::query::QueryAs;
 use tokio::sync::broadcast::Sender;
@@ -57,6 +57,7 @@ pub async fn create_game(
 }
 
 pub async fn game_home(
+    accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -64,10 +65,15 @@ pub async fn game_home(
         .bind(game_id)
         .fetch_one(&state.db)
         .await?;
-    Ok(templates::GameTemplate { game })
+
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::GameTemplate { game }.into_response(),
+        AcceptType::JSON => Json(game).into_response()
+    })
 }
 
 pub async fn fetch_leaderboard_entries(
+    accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -81,7 +87,10 @@ pub async fn fetch_leaderboard_entries(
         .fetch_all(&state.db)
         .await?;
 
-    Ok(templates::LeaderboardEntriesTemplate { entries })
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries }.into_response(),
+        AcceptType::JSON => Json(entries).into_response()
+    })
 }
 
 macro_rules! bind_all {
@@ -94,17 +103,18 @@ macro_rules! bind_all {
 }
 
 pub async fn create_leaderboard_entry(
+    accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
     Extension(tx): Extension<LeaderboardStream>,
-    Form(form): Form<LeaderboardEntryNew>,
+    JsonOrForm(request): JsonOrForm<LeaderboardEntryNew>,
 ) -> Result<impl IntoResponse, ApiError> {
     let leaderboard_entry = sqlx::query_as::<_, LeaderboardEntry>(
         "INSERT INTO leaderboard_entries (game_id, score, user_name, free_data) \
         VALUES ($1, $2, $3, $4) \
         RETURNING id, score, game_id, user_name, free_data",
     );
-    let leaderboard_entry = bind_all!(leaderboard_entry, game_id, form.score, form.user_name, form.free_data);
+    let leaderboard_entry = bind_all!(leaderboard_entry, game_id, request.score, request.user_name, request.free_data);
     let leaderboard_entry = leaderboard_entry
         .fetch_one(&state.db)
         .await?;
@@ -122,11 +132,15 @@ pub async fn create_leaderboard_entry(
         );
     }
 
-    Ok(templates::LeaderboardEntryNewTemplate { entry: leaderboard_entry })
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::LeaderboardEntryNewTemplate { entry: leaderboard_entry }.into_response(),
+        AcceptType::JSON => Json(leaderboard_entry).into_response()
+    })
 }
 
 // TODO: a unique stream per game?
 pub async fn handle_stream(
+    accept_type: AcceptType,
     Extension(tx): Extension<LeaderboardStream>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let rx = tx.subscribe();
@@ -135,10 +149,14 @@ pub async fn handle_stream(
 
     Sse::new(
         stream
-            .map(|msg| {
+            .map(move |msg| {
                 let msg = msg.unwrap();
-                let json = format!("<div>{}</div>", json!(msg));
-                Event::default().data(json)
+                let json = json!(msg);
+                let message = match accept_type {
+                    AcceptType::HTMX => format!("<div>{}</div>", json),
+                    AcceptType::JSON => json.to_string()
+                };
+                Event::default().data(message)
             })
             .map(Ok),
     )
