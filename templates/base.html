@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <script>
+            document.addEventListener("DOMContentLoaded", function (){
+                document.body.addEventListener('htmx:configRequest', function(evt) {
+                    // all requests outgoing will have this accept header, otherwise they may get json back
+                    evt.detail.headers['Accept'] = "text/html */*";
+                });
+            })
+        </script>
         <script
             src="https://unpkg.com/htmx.org@1.9.6"
             integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
