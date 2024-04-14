@@ -6,7 +6,7 @@ use askama::Template;
 pub struct HelloTemplate;
 
 #[derive(Template)]
-#[template(path = "leaderboard/stream.html")]
+#[template(path = "leaderboard/stream_page.html")]
 pub struct StreamTemplate;
 
 #[derive(Template)]
@@ -16,26 +16,26 @@ pub struct Games {
 }
 
 #[derive(Template)]
-#[template(path = "leaderboard/game.html")]
+#[template(path = "leaderboard/game_row.html")]
 pub struct GameNewTemplate {
     pub game: models::Game,
 }
 
 #[derive(Template)]
-#[template(path = "leaderboard/leaderboard.html")]
+#[template(path = "leaderboard/game.html")]
 pub struct GameTemplate {
     pub game: models::Game,
 }
 
 
 #[derive(Template)]
-#[template(path = "leaderboard/leaderboard_entries.html")]
+#[template(path = "leaderboard/game_entries.html")]
 pub struct LeaderboardEntriesTemplate {
     pub entries: Vec<models::LeaderboardEntry>,
 }
 
 #[derive(Template)]
-#[template(path = "leaderboard/leaderboard_entry.html")]
+#[template(path = "leaderboard/game_entry_row.html")]
 pub struct LeaderboardEntryNewTemplate {
     pub entry: models::LeaderboardEntry,
 }
