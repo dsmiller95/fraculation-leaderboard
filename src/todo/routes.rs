@@ -1,7 +1,7 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::{sse::Event, IntoResponse, Response, Sse},
+    response::{sse::Event, IntoResponse, Sse},
     Extension, Form,
 };
 use serde_json::json;

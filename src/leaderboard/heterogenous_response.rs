@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 use axum::async_trait;
-use axum::extract::{FromRequest, FromRequestParts};
+use axum::extract::FromRequestParts;
 use axum::http::{HeaderValue};
 use axum::http::header::ACCEPT;
 use axum::http::request::Parts;
@@ -37,8 +37,6 @@ fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<AcceptType> 
 
     let html_accept_index = accept_str.find("text/html");
     let json_accept_index = accept_str.find("application/json");
-
-    println!("accept header found indexes: html: {:?} json: {:?}", html_accept_index, json_accept_index);
 
     match (html_accept_index, json_accept_index) {
         (Some(_), None) => Some(HTMX),

@@ -9,6 +9,7 @@ use tokio_stream::{Stream, StreamExt as _};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::{errors::ApiError, router::AppState};
+use crate::leaderboard::heterogenous_request::JsonOrForm;
 use crate::models::MutationKind;
 
 use super::heterogenous_response::AcceptType;
@@ -25,29 +26,36 @@ pub async fn stream() -> impl IntoResponse {
     templates::StreamTemplate
 }
 
-pub async fn fetch_games(accept_type: AcceptType, State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
+pub async fn fetch_games(
+    accept_type: AcceptType,
+    State(state): State<AppState>,
+) -> Result<impl IntoResponse, ApiError> {
     let games = sqlx::query_as::<_, Game>("SELECT * FROM games")
         .fetch_all(&state.db)
         .await?;
 
-    match accept_type {
-        AcceptType::HTMX => Ok((templates::Games { games }).into_response()),
-        AcceptType::JSON => Ok(Json(games).into_response())
-    }
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::Games { games }.into_response(),
+        AcceptType::JSON => Json(games).into_response()
+    })
 }
 
 pub async fn create_game(
+    accept_type: AcceptType,
     State(state): State<AppState>,
-    Form(form): Form<GameNew>,
+    JsonOrForm(request): JsonOrForm<GameNew>,
 ) -> Result<impl IntoResponse, ApiError> {
     let game = sqlx::query_as::<_, Game>(
         "INSERT INTO games (description) VALUES ($1) RETURNING id, description",
     )
-    .bind(form.description)
+    .bind(request.description)
     .fetch_one(&state.db)
     .await?;
 
-    Ok(templates::GameNewTemplate { game })
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::GameNewTemplate { game }.into_response(),
+        AcceptType::JSON => Json(game).into_response()
+    })
 }
 
 pub async fn game_home(
