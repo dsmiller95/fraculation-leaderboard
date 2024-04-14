@@ -44,9 +44,10 @@ pub async fn create_game(
     JsonOrForm(request): JsonOrForm<GameNew>,
 ) -> Result<impl IntoResponse, ApiError> {
     let game = sqlx::query_as::<_, Game>(
-        "INSERT INTO games (description) VALUES ($1) RETURNING id, description",
+        "INSERT INTO games (description, score_sort_mode) VALUES ($1, $2) RETURNING id, description, score_sort_mode",
     )
-    .bind(request.description)
+        .bind(request.description)
+        .bind(request.score_sort_mode.unwrap_or(GameScoreSortMode::HigherIsBetter))
     .fetch_one(&state.db)
     .await?;
 
@@ -77,12 +78,20 @@ pub async fn fetch_leaderboard_entries(
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let entries = sqlx::query_as::<_, LeaderboardEntry>(
-        "SELECT * \
+    let game = sqlx::query_as::<_, Game>("SELECT * FROM games WHERE id = $1")
+        .bind(game_id)
+        .fetch_one(&state.db)
+        .await?;
+    let ordering = match game.score_sort_mode {
+        GameScoreSortMode::HigherIsBetter => "DESC",
+        GameScoreSortMode::LesserIsBetter => "ASC"
+    };
+    let sql = format!("SELECT * \
             FROM leaderboard_entries \
             WHERE game_id = $1 \
-            ORDER BY score desc \
-            LIMIT 10;")
+            ORDER BY score {} \
+            LIMIT 10;", ordering);
+    let entries = sqlx::query_as::<_, LeaderboardEntry>(sql.as_str())
         .bind(game_id)
         .fetch_all(&state.db)
         .await?;

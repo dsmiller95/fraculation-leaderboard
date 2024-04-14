@@ -1,15 +1,26 @@
 use serde::{Deserialize, Serialize};
 use crate::models::MutationKind;
 
+#[derive(Serialize, Deserialize)]
+#[derive(sqlx::Type)]
+#[sqlx(rename_all = "PascalCase")]
+#[sqlx(type_name = "GameScoreSortMode")]
+pub enum GameScoreSortMode {
+    HigherIsBetter,
+    LesserIsBetter
+}
+
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Game {
     pub id: i32,
     pub description: String,
+    pub score_sort_mode: GameScoreSortMode
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct GameNew {
-    pub description: String
+    pub description: String,
+    pub score_sort_mode: Option<GameScoreSortMode>
 }
 
 

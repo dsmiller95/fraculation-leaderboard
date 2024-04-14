@@ -14,6 +14,14 @@
             name="description" id="description"
         />
     </div>
+    <div>
+        <label for="score_sort_mode">Score Sort Mode</label>
+        <select name="score_sort_mode" id="score_sort_mode" required>
+            <option value="">Select a score sort mode...</option>
+            <option value="HigherIsBetter">Higher Is Better</option>
+            <option value="LesserIsBetter">Lesser Is Better</option>
+        </select>
+    </div>
     <button
         hx-post="/leaderboard/games"
         hx-trigger="click"
