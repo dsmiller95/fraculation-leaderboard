@@ -114,7 +114,12 @@ pub async fn create_leaderboard_entry(
         VALUES ($1, $2, $3, $4) \
         RETURNING id, score, game_id, user_name, free_data",
     );
-    let leaderboard_entry = bind_all!(leaderboard_entry, game_id, request.score, request.user_name, request.free_data);
+    let leaderboard_entry = bind_all!(leaderboard_entry,
+        game_id,
+        request.score,
+        request.user_name,
+        request.free_data.unwrap_or("".into())
+    );
     let leaderboard_entry = leaderboard_entry
         .fetch_one(&state.db)
         .await?;
