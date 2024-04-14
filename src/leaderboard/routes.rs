@@ -9,10 +9,8 @@ use tokio_stream::{Stream, StreamExt as _};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::{errors::ApiError, router::AppState};
-use crate::leaderboard::heterogenous_request::JsonOrForm;
+use crate::hetero_req_resp::{JsonOrForm, AcceptType};
 use crate::models::MutationKind;
-
-use super::heterogenous_response::AcceptType;
 use super::models::*;
 use super::templates;
 

@@ -4,6 +4,7 @@ mod models;
 mod router;
 mod leaderboard;
 mod todo;
+mod hetero_req_resp;
 
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {
