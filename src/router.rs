@@ -4,10 +4,12 @@ use axum::{
     routing::{delete, get},
     Extension, Router,
 };
-use axum::http::StatusCode;
+use axum::http::{Method, StatusCode};
+use axum::http::header::{ACCEPT, CONTENT_TYPE};
 use sqlx::PgPool;
 
 use tokio::sync::broadcast::channel;
+use tower_http::cors::{Any, CorsLayer};
 use crate::errors::ApiError;
 use crate::todo;
 use crate::leaderboard;
@@ -71,7 +73,15 @@ pub fn init_router(db: PgPool) -> Router {
             .route("/leaderboard/games/:id/entries", get(fetch_leaderboard_entries).post(create_leaderboard_entry))
             .layer(Extension(update_stream))
     }
+    let cors = CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        // Accept defines whether to send back json or html. content type defines form data vs json data
+        .allow_headers([ACCEPT, CONTENT_TYPE])
+        // allow requests from any origin
+        .allow_origin(Any);
 
     router
+        .layer(cors)
         .with_state(state)
 }
