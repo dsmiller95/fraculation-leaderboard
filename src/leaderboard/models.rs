@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use crate::models::MutationKind;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq)]
 #[derive(sqlx::Type)]
 #[sqlx(rename_all = "PascalCase")]
 #[sqlx(type_name = "GameScoreSortMode")]
@@ -10,21 +11,24 @@ pub enum GameScoreSortMode {
     LesserIsBetter
 }
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow)]
 pub struct Game {
     pub id: i32,
     pub description: String,
     pub score_sort_mode: GameScoreSortMode
 }
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow)]
 pub struct GameNew {
     pub description: String,
     pub score_sort_mode: Option<GameScoreSortMode>
 }
 
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow)]
 pub struct LeaderboardEntry {
     pub id: i32,
     pub score: f64,
@@ -34,14 +38,16 @@ pub struct LeaderboardEntry {
 }
 
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(sqlx::FromRow)]
 pub struct LeaderboardEntryNew {
     pub score: f32,
     pub user_name: String,
     pub free_data: Option<String>
 }
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone)]
 pub struct LeaderboardUpdate{
     pub mutation_kind: MutationKind,
     pub id: i32

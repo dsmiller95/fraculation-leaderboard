@@ -5,6 +5,7 @@ mod router;
 mod leaderboard;
 mod todo;
 mod hetero_req_resp;
+#[cfg(test)]
 mod tests;
 
 #[shuttle_runtime::main]
