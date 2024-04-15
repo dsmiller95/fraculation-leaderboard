@@ -12,6 +12,7 @@ pub enum GameScoreSortMode {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq)]
 #[derive(sqlx::FromRow)]
 pub struct Game {
     pub id: i32,
@@ -41,7 +42,7 @@ pub struct LeaderboardEntry {
 #[derive(Serialize, Deserialize, Debug)]
 #[derive(sqlx::FromRow)]
 pub struct LeaderboardEntryNew {
-    pub score: f32,
+    pub score: f64,
     pub user_name: String,
     pub free_data: Option<String>
 }
