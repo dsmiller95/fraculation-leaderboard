@@ -1,5 +1,6 @@
-use crate::leaderboard::models::{Game, GameNew, GameScoreSortMode};
+use crate::leaderboard::models::{Game, GameScoreSortMode};
 
+use serde_json::json;
 use crate::tests::my_test_server::*;
 mod game {
     use super::*;
@@ -10,11 +11,12 @@ mod game {
         #[tokio::test]
         async fn creates_game() {
             let server = get_app().await;
+            get_app().await;
 
-            let req = GameNew {
-                description: "Test Game Description 3123123".into(),
-                score_sort_mode: Some(GameScoreSortMode::LesserIsBetter),
-            };
+            let req = json!({
+                "description": "Test Game Description 3123123",
+                "score_sort_mode": "LesserIsBetter"
+            });
 
             let response = server
                 .post_json("/leaderboard/games", &req)
@@ -29,10 +31,9 @@ mod game {
         async fn default_to_higher_is_better() {
             let server = get_app().await;
 
-            let req = GameNew {
-                description: "Test Game Description 287989".into(),
-                score_sort_mode: None,
-            };
+            let req = json!({
+                "description": "Test Game Description 287989",
+            });
 
             let response = server
                 .post_json("/leaderboard/games", &req)
@@ -62,10 +63,9 @@ mod game {
         async fn returns_same_data_as_create() {
             let server = get_app().await;
 
-            let req = GameNew {
-                description: "Test Game Description 44523525".into(),
-                score_sort_mode: None,
-            };
+            let req = json!({
+                "description": "Test Game Description 44523525",
+            });
 
             let create_resp = server
                 .post_json("/leaderboard/games", &req)
@@ -84,7 +84,7 @@ mod game {
 
     mod entries {
         use super::*;
-        use crate::leaderboard::models::{LeaderboardEntry, LeaderboardEntryNew};
+        use crate::leaderboard::models::{LeaderboardEntry};
 
         mod create {
             use super::*;
@@ -93,21 +93,19 @@ mod game {
             async fn creates_under_game() {
                 let server = get_app().await;
 
-                let req = GameNew {
-                    description: "Test Game Description 55111".into(),
-                    score_sort_mode: None,
-                };
+                let req = json!({
+                    "description": "Test Game Description 55111",
+                });
 
                 let new_game = server
                     .post_json("/leaderboard/games", &req)
                     .await
                     .json::<Game>();
 
-                let req = LeaderboardEntryNew {
-                    score: 12.0,
-                    user_name: "bause".to_string(),
-                    free_data: None,
-                };
+                let req = json!({
+                    "score": 12.0,
+                    "user_name": "bause",
+                });
                 let new_entry = server
                     .post_json(
                         format!("/leaderboard/games/{}/entries", new_game.id).as_str(),
@@ -125,7 +123,6 @@ mod game {
 
         mod get_all {
             use super::*;
-            use crate::leaderboard::models::GameScoreSortMode::{HigherIsBetter, LesserIsBetter};
 
             async fn create_then_get_entries(
                 server: impl MyTestServer,
@@ -134,11 +131,10 @@ mod game {
                 expected_scores: Vec<f64>,
             ) {
                 for score in scores {
-                    let req = LeaderboardEntryNew {
-                        score: score,
-                        user_name: "XXXX".to_string(),
-                        free_data: None,
-                    };
+                    let req = json!({
+                        "score": score,
+                        "user_name": "XXXX",
+                    });
                     let new_entry = server
                         .post_json(
                             format!("/leaderboard/games/{}/entries", game_id).as_str(),
@@ -162,10 +158,10 @@ mod game {
             async fn sorts_by_score() {
                 let server = get_app().await;
 
-                let req = GameNew {
-                    description: "Test Game Description 8737312".into(),
-                    score_sort_mode: Some(HigherIsBetter),
-                };
+                let req = json!({
+                    "description": "Test Game Description 8737312",
+                    "score_sort_mode": "HigherIsBetter"
+                });
 
                 let new_game = server
                     .post_json("/leaderboard/games", &req)
@@ -179,10 +175,10 @@ mod game {
             async fn sorts_by_inverse_score() {
                 let server = get_app().await;
 
-                let req = GameNew {
-                    description: "Test Game Description 242424".into(),
-                    score_sort_mode: Some(LesserIsBetter),
-                };
+                let req = json!({
+                    "description": "Test Game Description 8737312",
+                    "score_sort_mode": "LesserIsBetter"
+                });
 
                 let new_game = server
                     .post_json("/leaderboard/games", &req)
