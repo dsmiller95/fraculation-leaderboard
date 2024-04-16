@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 pub use crate::models::MutationKind;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Debug)]
 pub struct TodoUpdate {

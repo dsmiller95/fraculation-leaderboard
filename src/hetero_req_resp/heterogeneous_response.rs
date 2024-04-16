@@ -1,19 +1,18 @@
-use std::convert::Infallible;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
-use axum::http::{HeaderValue};
 use axum::http::header::ACCEPT;
 use axum::http::request::Parts;
+use axum::http::HeaderValue;
+use std::convert::Infallible;
 
 #[derive(Copy, Clone)]
 pub enum AcceptType {
     HTMX,
-    JSON
+    JSON,
 }
 
 #[async_trait]
-impl<S> FromRequestParts<S> for AcceptType
-{
+impl<S> FromRequestParts<S> for AcceptType {
     type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
@@ -25,14 +24,9 @@ impl<S> FromRequestParts<S> for AcceptType
 
 fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<AcceptType> {
     use AcceptType::*;
-    let Some(accept) = accept else {
-        return None
-    };
+    let Some(accept) = accept else { return None };
     let Ok(accept_str) = accept.to_str() else {
-        eprintln!(
-            "accept header was not ascii! {:?}",
-            accept
-        );
+        eprintln!("accept header was not ascii! {:?}", accept);
         return None;
     };
 
@@ -44,6 +38,6 @@ fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<AcceptType> 
         (None, Some(_)) => Some(JSON),
         (Some(html), Some(json)) if html < json => Some(HTMX),
         (Some(html), Some(json)) if json < html => Some(JSON),
-        _ => None
+        _ => None,
     }
 }

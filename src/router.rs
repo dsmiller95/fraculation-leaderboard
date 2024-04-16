@@ -1,19 +1,18 @@
 use askama::Template;
 use askama_axum::{IntoResponse, Response};
+use axum::http::header::{ACCEPT, CONTENT_TYPE};
+use axum::http::{Method, StatusCode};
 use axum::{
     routing::{delete, get},
     Extension, Router,
 };
-use axum::http::{Method, StatusCode};
-use axum::http::header::{ACCEPT, CONTENT_TYPE};
 use sqlx::PgPool;
 
+use crate::errors::ApiError;
+use crate::leaderboard;
+use crate::todo;
 use tokio::sync::broadcast::channel;
 use tower_http::cors::{Any, CorsLayer};
-use crate::errors::ApiError;
-use crate::todo;
-use crate::leaderboard;
-
 
 #[derive(Clone)]
 pub struct AppState {
@@ -24,7 +23,9 @@ pub struct AppState {
 #[template(path = "index.html")]
 pub struct RootHelloTemplate;
 
-pub async fn root_home() -> impl IntoResponse { RootHelloTemplate }
+pub async fn root_home() -> impl IntoResponse {
+    RootHelloTemplate
+}
 pub async fn styles() -> Result<impl IntoResponse, ApiError> {
     let response = Response::builder()
         .status(StatusCode::OK)
@@ -34,17 +35,15 @@ pub async fn styles() -> Result<impl IntoResponse, ApiError> {
     Ok(response)
 }
 
-
 pub fn init_router(db: PgPool) -> Router {
     let state = AppState { db };
 
     let mut router = Router::new()
         .route("/", get(root_home))
-        .route("/styles.css", get(styles))
-        ;
+        .route("/styles.css", get(styles));
     {
-        use todo::routes::*;
         use todo::models::TodoUpdate;
+        use todo::routes::*;
 
         let (tx, _rx) = channel::<TodoUpdate>(10);
         let update_stream: TodosStream = tx;
@@ -58,8 +57,8 @@ pub fn init_router(db: PgPool) -> Router {
             .layer(Extension(update_stream))
     }
     {
-        use leaderboard::routes::*;
         use leaderboard::models::LeaderboardUpdate;
+        use leaderboard::routes::*;
 
         let (tx, _rx) = channel::<LeaderboardUpdate>(10);
         let update_stream: LeaderboardStream = tx;
@@ -70,7 +69,10 @@ pub fn init_router(db: PgPool) -> Router {
             .route("/leaderboard/styles.css", get(styles))
             .route("/leaderboard/games", get(fetch_games).post(create_game))
             .route("/leaderboard/games/:id", get(game_home))
-            .route("/leaderboard/games/:id/entries", get(fetch_leaderboard_entries).post(create_leaderboard_entry))
+            .route(
+                "/leaderboard/games/:id/entries",
+                get(fetch_leaderboard_entries).post(create_leaderboard_entry),
+            )
             .layer(Extension(update_stream))
     }
     let cors = CorsLayer::new()
@@ -81,7 +83,5 @@ pub fn init_router(db: PgPool) -> Router {
         // allow requests from any origin
         .allow_origin(Any);
 
-    router
-        .layer(cors)
-        .with_state(state)
+    router.layer(cors).with_state(state)
 }

@@ -1,18 +1,22 @@
 use std::convert::Infallible;
 use std::time::Duration;
 
-use axum::{Extension, extract::{Path, State}, Json, response::{IntoResponse, Sse, sse::Event}};
+use axum::{
+    extract::{Path, State},
+    response::{sse::Event, IntoResponse, Sse},
+    Extension, Json,
+};
 use serde_json::json;
 use sqlx::query::QueryAs;
 use tokio::sync::broadcast::Sender;
-use tokio_stream::{Stream, StreamExt as _};
 use tokio_stream::wrappers::BroadcastStream;
+use tokio_stream::{Stream, StreamExt as _};
 
-use crate::{errors::ApiError, router::AppState};
-use crate::hetero_req_resp::{JsonOrForm, AcceptType};
-use crate::models::MutationKind;
 use super::models::*;
 use super::templates;
+use crate::hetero_req_resp::{AcceptType, JsonOrForm};
+use crate::models::MutationKind;
+use crate::{errors::ApiError, router::AppState};
 
 pub type LeaderboardStream = Sender<LeaderboardUpdate>;
 
@@ -34,7 +38,7 @@ pub async fn fetch_games(
 
     Ok(match accept_type {
         AcceptType::HTMX => templates::Games { games }.into_response(),
-        AcceptType::JSON => Json(games).into_response()
+        AcceptType::JSON => Json(games).into_response(),
     })
 }
 
@@ -53,7 +57,7 @@ pub async fn create_game(
 
     Ok(match accept_type {
         AcceptType::HTMX => templates::GameNewTemplate { game }.into_response(),
-        AcceptType::JSON => Json(game).into_response()
+        AcceptType::JSON => Json(game).into_response(),
     })
 }
 
@@ -69,7 +73,7 @@ pub async fn game_home(
 
     Ok(match accept_type {
         AcceptType::HTMX => templates::GameTemplate { game }.into_response(),
-        AcceptType::JSON => Json(game).into_response()
+        AcceptType::JSON => Json(game).into_response(),
     })
 }
 
@@ -84,13 +88,16 @@ pub async fn fetch_leaderboard_entries(
         .await?;
     let ordering = match game.score_sort_mode {
         GameScoreSortMode::HigherIsBetter => "DESC",
-        GameScoreSortMode::LesserIsBetter => "ASC"
+        GameScoreSortMode::LesserIsBetter => "ASC",
     };
-    let sql = format!("SELECT * \
+    let sql = format!(
+        "SELECT * \
             FROM leaderboard_entries \
             WHERE game_id = $1 \
             ORDER BY score {} \
-            LIMIT 10;", ordering);
+            LIMIT 10;",
+        ordering
+    );
     let entries = sqlx::query_as::<_, LeaderboardEntry>(sql.as_str())
         .bind(game_id)
         .fetch_all(&state.db)
@@ -98,7 +105,7 @@ pub async fn fetch_leaderboard_entries(
 
     Ok(match accept_type {
         AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries }.into_response(),
-        AcceptType::JSON => Json(entries).into_response()
+        AcceptType::JSON => Json(entries).into_response(),
     })
 }
 
@@ -123,15 +130,14 @@ pub async fn create_leaderboard_entry(
         VALUES ($1, $2, $3, $4) \
         RETURNING id, score, game_id, user_name, free_data",
     );
-    let leaderboard_entry = bind_all!(leaderboard_entry,
+    let leaderboard_entry = bind_all!(
+        leaderboard_entry,
         game_id,
         request.score,
         request.user_name,
         request.free_data.unwrap_or("".into())
     );
-    let leaderboard_entry = leaderboard_entry
-        .fetch_one(&state.db)
-        .await?;
+    let leaderboard_entry = leaderboard_entry.fetch_one(&state.db).await?;
 
     if tx
         .send(LeaderboardUpdate {
@@ -147,8 +153,11 @@ pub async fn create_leaderboard_entry(
     }
 
     Ok(match accept_type {
-        AcceptType::HTMX => templates::LeaderboardEntryNewTemplate { entry: leaderboard_entry }.into_response(),
-        AcceptType::JSON => Json(leaderboard_entry).into_response()
+        AcceptType::HTMX => templates::LeaderboardEntryNewTemplate {
+            entry: leaderboard_entry,
+        }
+        .into_response(),
+        AcceptType::JSON => Json(leaderboard_entry).into_response(),
     })
 }
 
@@ -168,15 +177,15 @@ pub async fn handle_stream(
                 let json = json!(msg);
                 let message = match accept_type {
                     AcceptType::HTMX => format!("<div>{}</div>", json),
-                    AcceptType::JSON => json.to_string()
+                    AcceptType::JSON => json.to_string(),
                 };
                 Event::default().data(message)
             })
             .map(Ok),
     )
-        .keep_alive(
-            axum::response::sse::KeepAlive::new()
-                .interval(Duration::from_secs(600))
-                .text("keep-alive-text"),
-        )
+    .keep_alive(
+        axum::response::sse::KeepAlive::new()
+            .interval(Duration::from_secs(600))
+            .text("keep-alive-text"),
+    )
 }
