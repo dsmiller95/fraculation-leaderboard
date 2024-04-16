@@ -1,7 +1,7 @@
 use crate::router::init_router;
 use crate::tests::postgres::get_shared_pool;
 use axum::http::header::ACCEPT;
-use axum::http::HeaderValue;
+use axum::http::{HeaderValue, StatusCode};
 use axum_test::{TestResponse, TestServer};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -29,6 +29,10 @@ pub trait MyTestResponse {
     fn json<T>(&self) -> T
     where
         T: DeserializeOwned;
+    fn json_allow_fail<T>(&self) -> T
+        where
+            T: DeserializeOwned;
+    fn status_code(&self) -> StatusCode;
 }
 
 impl MyTestServer for TestServer {
@@ -36,11 +40,11 @@ impl MyTestServer for TestServer {
     where
         T: ?Sized + Serialize,
     {
-        self.post(path).json(&json).expect_success()
+        self.post(path).json(&json)
     }
 
     fn get(&self, path: &str) -> impl IntoFuture<Output = impl MyTestResponse> {
-        self.get(path).expect_success()
+        self.get(path)
     }
 }
 
@@ -49,6 +53,18 @@ impl MyTestResponse for TestResponse {
     where
         T: DeserializeOwned,
     {
+        self.assert_status_success();
         self.json()
+    }
+
+    fn json_allow_fail<T>(&self) -> T
+        where
+            T: DeserializeOwned,
+    {
+        self.json()
+    }
+
+    fn status_code(&self) -> StatusCode {
+        self.status_code()
     }
 }
