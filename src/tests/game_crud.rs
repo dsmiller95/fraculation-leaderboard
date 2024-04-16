@@ -1,14 +1,10 @@
 use crate::leaderboard::models::Game;
 
-use crate::tests::my_test_server::*;
 use assert_json_diff::assert_json_include;
 use serde::Deserialize;
 use serde_json::json;
 
-#[derive(Deserialize)]
-struct HasId {
-    pub id: i32,
-}
+use super::*;
 
 mod game {
     use super::*;
