@@ -8,5 +8,11 @@
       <jdbc-url>jdbc:postgresql://localhost:15797/fraculation-leaderboard</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="db-fraculation-leaderboard@db.shuttle.rs" uuid="e4c8a8b8-9512-421f-8080-4d232c9dbd19">
+      <driver-ref>postgresql</driver-ref>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://db.shuttle.rs:5432/db-fraculation-leaderboard</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

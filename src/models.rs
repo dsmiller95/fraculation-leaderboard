@@ -1,6 +1,6 @@
-use serde::{Serialize};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum MutationKind {
     Create,
     Delete,

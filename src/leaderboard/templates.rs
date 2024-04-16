@@ -27,7 +27,6 @@ pub struct GameTemplate {
     pub game: models::Game,
 }
 
-
 #[derive(Template)]
 #[template(path = "leaderboard/game_entries.html")]
 pub struct LeaderboardEntriesTemplate {
