@@ -1,19 +1,6 @@
 use crate::leaderboard::models::{Game, GameNew, GameScoreSortMode};
-use crate::router::init_router;
-use crate::tests::postgres::get_shared_pool;
-use axum::http::header::ACCEPT;
-use axum::http::HeaderValue;
-use axum_test::TestServer;
 
-async fn get_app() -> TestServer {
-    let pg = get_shared_pool().await;
-    let app = init_router(pg);
-    let mut server = TestServer::new(app).unwrap();
-    server.add_header(ACCEPT, HeaderValue::from_static("application/json"));
-
-    server
-}
-
+use crate::tests::my_test_server::*;
 mod game {
     use super::*;
 
@@ -30,9 +17,7 @@ mod game {
             };
 
             let response = server
-                .post("/leaderboard/games")
-                .json(&req)
-                .expect_success()
+                .post_json("/leaderboard/games", &req)
                 .await
                 .json::<Game>();
 
@@ -50,9 +35,7 @@ mod game {
             };
 
             let response = server
-                .post("/leaderboard/games")
-                .json(&req)
-                .expect_success()
+                .post_json("/leaderboard/games", &req)
                 .await
                 .json::<Game>();
 
@@ -85,9 +68,7 @@ mod game {
             };
 
             let create_resp = server
-                .post("/leaderboard/games")
-                .json(&req)
-                .expect_success()
+                .post_json("/leaderboard/games", &req)
                 .await
                 .json::<Game>();
             let game_id = create_resp.id;
@@ -118,9 +99,7 @@ mod game {
                 };
 
                 let new_game = server
-                    .post("/leaderboard/games")
-                    .json(&req)
-                    .expect_success()
+                    .post_json("/leaderboard/games", &req)
                     .await
                     .json::<Game>();
 
@@ -130,9 +109,10 @@ mod game {
                     free_data: None,
                 };
                 let new_entry = server
-                    .post(format!("/leaderboard/games/{}/entries", new_game.id).as_str())
-                    .json(&req)
-                    .expect_success()
+                    .post_json(
+                        format!("/leaderboard/games/{}/entries", new_game.id).as_str(),
+                        &req,
+                    )
                     .await
                     .json::<LeaderboardEntry>();
 
@@ -148,7 +128,7 @@ mod game {
             use crate::leaderboard::models::GameScoreSortMode::{HigherIsBetter, LesserIsBetter};
 
             async fn create_then_get_entries(
-                server: TestServer,
+                server: impl MyTestServer,
                 game_id: i32,
                 scores: Vec<f64>,
                 expected_scores: Vec<f64>,
@@ -160,9 +140,10 @@ mod game {
                         free_data: None,
                     };
                     let new_entry = server
-                        .post(format!("/leaderboard/games/{}/entries", game_id).as_str())
-                        .json(&req)
-                        .expect_success()
+                        .post_json(
+                            format!("/leaderboard/games/{}/entries", game_id).as_str(),
+                            &req,
+                        )
                         .await
                         .json::<LeaderboardEntry>();
                     assert_eq!(game_id, new_entry.game_id);
@@ -170,7 +151,6 @@ mod game {
 
                 let all_entries = server
                     .get(format!("/leaderboard/games/{}/entries", game_id).as_str())
-                    .expect_success()
                     .await
                     .json::<Vec<LeaderboardEntry>>();
 
@@ -188,9 +168,7 @@ mod game {
                 };
 
                 let new_game = server
-                    .post("/leaderboard/games")
-                    .json(&req)
-                    .expect_success()
+                    .post_json("/leaderboard/games", &req)
                     .await
                     .json::<Game>();
 
@@ -207,9 +185,7 @@ mod game {
                 };
 
                 let new_game = server
-                    .post("/leaderboard/games")
-                    .json(&req)
-                    .expect_success()
+                    .post_json("/leaderboard/games", &req)
                     .await
                     .json::<Game>();
 
