@@ -4,6 +4,7 @@ use axum::http::header::ACCEPT;
 use axum::http::request::Parts;
 use axum::http::HeaderValue;
 use std::convert::Infallible;
+use log::error;
 
 #[derive(Copy, Clone)]
 pub enum AcceptType {
@@ -26,7 +27,7 @@ fn characterize_accept_type(accept: Option<&HeaderValue>) -> Option<AcceptType> 
     use AcceptType::*;
     let Some(accept) = accept else { return None };
     let Ok(accept_str) = accept.to_str() else {
-        eprintln!("accept header was not ascii! {:?}", accept);
+        error!("accept header was not ascii! {:?}", accept);
         return None;
     };
 

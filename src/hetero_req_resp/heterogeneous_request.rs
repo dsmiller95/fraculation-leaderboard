@@ -6,6 +6,7 @@ use axum::http::{HeaderValue, StatusCode};
 use axum::{async_trait, Form, Json};
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
+use log::error;
 
 const FORM_HEADER: &str = "application/x-www-form-urlencoded";
 const JSON_HEADER: &str = "application/json";
@@ -70,7 +71,7 @@ enum ContentType {
 fn characterize_content_type(content: Option<&HeaderValue>) -> Option<ContentType> {
     let Some(content) = content else { return None };
     let Ok(content_str) = content.to_str() else {
-        eprintln!("content header was not ascii! {:?}", content);
+        error!("content header was not ascii! {:?}", content);
         return None;
     };
 

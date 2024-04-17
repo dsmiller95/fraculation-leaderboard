@@ -7,6 +7,7 @@ use axum::{
 use serde_json::json;
 use std::convert::Infallible;
 use std::time::Duration;
+use log::error;
 use tokio::sync::broadcast::Sender;
 use tokio_stream::wrappers::BroadcastStream;
 use tokio_stream::{Stream, StreamExt as _};
@@ -53,7 +54,7 @@ pub async fn create_todo(
         })
         .is_err()
     {
-        eprintln!(
+        error!(
             "Record with ID {} was created but nobody's listening to the stream!",
             todo.id
         );
@@ -78,7 +79,7 @@ pub async fn delete_todo(
         })
         .is_err()
     {
-        eprintln!(
+        error!(
             "Record with ID {} was deleted but nobody's listening to the stream!",
             id
         );

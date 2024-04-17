@@ -791,6 +791,7 @@ dependencies = [
  "assert-json-diff",
  "axum 0.7.5",
  "axum-test",
+ "log",
  "once_cell",
  "rand",
  "serde",

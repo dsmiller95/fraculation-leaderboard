@@ -7,6 +7,7 @@ use axum::{
     Extension, Json,
 };
 use axum::http::StatusCode;
+use log::error;
 use serde_json::json;
 use sqlx::PgPool;
 use sqlx::query::QueryAs;
@@ -218,7 +219,7 @@ pub async fn create_game_entry(
         })
         .is_err()
     {
-        eprintln!(
+        error!(
             "Record with ID {} was created but nobody's listening to the stream!",
             leaderboard_entry.id
         );

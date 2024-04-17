@@ -17,6 +17,7 @@ thiserror = "1.0.58"
 tokio = "1.28.2"
 tokio-stream = { version = "0.1.14", features = ["sync"] }
 tower-http = { version = "0.5.2", features = ["cors"] }
+log = "0.4.21"
 
 [dev-dependencies]
 assert-json-diff = "2.0.2"
