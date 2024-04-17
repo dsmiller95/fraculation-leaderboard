@@ -27,7 +27,7 @@ tokio = "1.28.2"
 tokio-stream = { version = "0.1.14", features = ["sync"] }
 tower-http = { version = "0.5.2", features = ["cors"] }
 log = "0.4.21"
-utoipa = { version = "4.2.0", features = ["uuid", "axum_extras"] }
+utoipa = { version = "4.2.0", features = ["uuid", "axum_extras", "yaml"] }
 utoipa-rapidoc = { version = "3.0.0", features = ["axum"] }
 
 [dev-dependencies]

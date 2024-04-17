@@ -2,10 +2,7 @@ use askama::Template;
 use askama_axum::{IntoResponse, Response};
 use axum::http::header::{ACCEPT, CONTENT_TYPE};
 use axum::http::{Method, StatusCode};
-use axum::{
-    routing::{delete, get},
-    Extension, Router,
-};
+use axum::{routing::{delete, get}, Extension, Router, Json};
 use sqlx::PgPool;
 
 use crate::errors::ApiError;
@@ -34,13 +31,21 @@ pub async fn styles() -> Result<impl IntoResponse, ApiError> {
     Ok(response)
 }
 
+pub async fn openapi_yaml() -> impl IntoResponse { (
+    [(CONTENT_TYPE, "text/yaml, text/plain")],
+    gen_my_openapi().to_yaml().unwrap(),
+)}
+pub async fn openapi_json() -> impl IntoResponse { Json(gen_my_openapi()) }
+
 pub fn init_router(db: PgPool) -> Router {
     let state = AppState { db };
-    let open_api = gen_my_openapi();
     let mut router = Router::new()
-        .merge(RapiDoc::with_openapi("/api-docs/openapi2.json", open_api).path("/rapidoc"))
+        .route("/api-docs/openapi2.yml", get(openapi_yaml))
+        .route("/api-docs/openapi2.json", get(openapi_json))
+        .merge(RapiDoc::new("/api-docs/openapi2.yml").path("/rapidoc"))
         .route("/", get(root_home))
-        .route("/styles.css", get(styles));
+        .route("/styles.css", get(styles))
+        ;
     {
         use todo::models::TodoUpdate;
         use todo::routes::*;
