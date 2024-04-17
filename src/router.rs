@@ -40,9 +40,9 @@ pub async fn openapi_json() -> impl IntoResponse { Json(gen_my_openapi()) }
 pub fn init_router(db: PgPool) -> Router {
     let state = AppState { db };
     let mut router = Router::new()
-        .route("/api-docs/openapi2.yml", get(openapi_yaml))
-        .route("/api-docs/openapi2.json", get(openapi_json))
-        .merge(RapiDoc::new("/api-docs/openapi2.yml").path("/rapidoc"))
+        .route("/api-docs/openapi3.yml", get(openapi_yaml))
+        .route("/api-docs/openapi3.json", get(openapi_json))
+        .merge(RapiDoc::new("/api-docs/openapi3.yml").path("/rapidoc"))
         .route("/", get(root_home))
         .route("/styles.css", get(styles))
         ;

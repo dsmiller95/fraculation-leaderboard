@@ -12,12 +12,12 @@ use crate::openapi::gen_my_openapi;
 
 fn main() {
     let doc = gen_my_openapi().to_yaml().unwrap();
-    fs::write("./doc/openapi2.yml", doc).expect("Should write to local file");
+    fs::write("./doc/openapi3.yml", doc).expect("Should write to local file");
 }
 
 #[test]
 fn generated_docs_are_up_to_date() {
-    let path = "doc/openapi2.yml";
+    let path = "doc/openapi3.yml";
     let current = fs::read_to_string(path)
         .expect("The current openapi file must exist");
     let newest = gen_my_openapi().to_yaml().unwrap();
