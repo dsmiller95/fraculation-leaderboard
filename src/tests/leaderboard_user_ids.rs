@@ -2,14 +2,13 @@ use crate::tests::my_test_server::get_app;
 use crate::tests::test_models::*;
 use assert_json_diff::{assert_json_eq};
 use axum::http::StatusCode;
-use rand::Rng;
 use serde_json::json;
+use sqlx::types::Uuid;
 
 use super::*;
 
-fn get_unique_user_id() -> String {
-    let mut rng = rand::thread_rng();
-    rng.gen::<[i8; 4]>().map(|x| x.to_string()).join("_")
+fn get_unique_user_id() -> Uuid {
+    Uuid::new_v4()
 }
 #[tokio::test]
 async fn two_scores_with_same_user_overwrites_when_higher() {
@@ -148,7 +147,7 @@ async fn creates_score_with_user_gets_score_by_user() {
         .json::<serde_json::Value>();
 
     let all_entries = server
-        .get(format!("/leaderbaord/users/{}/game/{}/entries", user_id, new_game.id).as_str())
+        .get(format!("/leaderboard/users/{}/games/{}/entries", user_id, new_game.id).as_str())
         .await
         .json::<serde_json::Value>();
     assert_json_eq!(all_entries, json!([added_first]));
