@@ -1,11 +1,10 @@
-use crate::tests::my_test_server::get_app;
-use crate::tests::test_models::*;
+mod common;
+use common::my_test_server::*;
+use common::test_models::*;
 use assert_json_diff::{assert_json_eq, assert_json_include};
 use axum::http::StatusCode;
 use serde_json::json;
 use sqlx::types::Uuid;
-
-use super::*;
 
 fn get_unique_user_id() -> Uuid {
     Uuid::new_v4()

@@ -1,11 +1,11 @@
-use crate::router::init_router;
-use crate::tests::postgres::get_shared_pool;
 use axum::http::header::ACCEPT;
 use axum::http::{HeaderValue, StatusCode};
 use axum_test::{TestResponse, TestServer};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::future::IntoFuture;
+use fraculation_leaderboard::router::init_router;
+use crate::common::postgres::get_shared_pool;
 
 pub async fn get_app() -> impl MyTestServer {
     let pg = get_shared_pool().await;

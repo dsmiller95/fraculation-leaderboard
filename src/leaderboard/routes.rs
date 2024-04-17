@@ -330,3 +330,15 @@ pub async fn handle_stream(
             .text("keep-alive-text"),
     )
 }
+
+#[cfg(test)]
+mod tests{
+    use axum::http::StatusCode;
+    use super::*;
+
+    #[test]
+    fn not_found_is_not_found(){
+        assert_eq!(StatusCode::NOT_FOUND, NOT_FOUND_RESP.0);
+        assert_eq!("Not Found", NOT_FOUND_RESP.1);
+    }
+}

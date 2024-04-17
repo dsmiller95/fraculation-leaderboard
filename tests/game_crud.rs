@@ -1,10 +1,12 @@
-use crate::leaderboard::models::Game;
+mod common;
+
+use common::my_test_server::*;
+use common::test_models::*;
+use fraculation_leaderboard::leaderboard::models::Game;
 
 use assert_json_diff::assert_json_include;
 use serde::Deserialize;
 use serde_json::json;
-
-use super::*;
 
 mod game {
     use super::*;
