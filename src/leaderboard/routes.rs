@@ -106,7 +106,10 @@ async fn get_game_internal(db: &PgPool, game_id: i32) -> Result<Option<Game>, Ap
 /// Responds with full details about the game
 #[utoipa::path(
     get,
-    path = "/leaderboard/games/{id}",
+    path = "/leaderboard/games/{game_id}",
+    params(
+        ("game_id" = i32, description = "Game Id", example = 1),
+    ),
     responses(
         (status = 200, description = "Game", body = Game),
         (status = 404, description = "Game not found", body = String, example = json!("Not Found")),
@@ -132,7 +135,10 @@ pub async fn get_game(
 /// Responds with a list of game entries, sorted by score based on the score_sort_mode of the game
 #[utoipa::path(
     get,
-    path = "/leaderboard/games/{id}/entries",
+    path = "/leaderboard/games/{game_id}/entries",
+    params(
+        ("game_id" = i32, description = "Game Id", example = 1),
+    ),
     responses(
         (status = 200, description = "Game Entries list", body = Vec<LeaderboardEntry>),
         (status = 404, description = "Game not found", body = String, example = json!("Not Found"))
@@ -190,6 +196,10 @@ async fn get_user_game_entry_internal(game_id: i32, user_id: Uuid, db: &PgPool) 
 #[utoipa::path(
     get,
     path = "/leaderboard/users/{user_id}/games/{game_id}/entries",
+    params(
+        ("game_id" = i32, description = "Game Id", example = 1),
+        ("user_id" = Uuid, description = "User Id"),
+    ),
     responses(
         (status = 200, description = "Game Entry", body = LeaderboardEntry),
         (status = 404, description = "Game or Entry not found", body = String, example = json!("Not Found")),
@@ -242,7 +252,10 @@ async fn try_get_better_or_equal_entry(db: &PgPool, game_id: i32, user_id: Uuid,
 /// Responds with the created entry, or an existing entry, if new entry is not an improvement.
 #[utoipa::path(
     post,
-    path = "/leaderboard/games",
+    path = "/leaderboard/games/{game_id}/entries",
+    params(
+        ("game_id" = i32, description = "Game Id", example = 1),
+    ),
     request_body = LeaderboardEntryNew,
     responses(
         (status = 200, description = "New game entry", body = LeaderboardEntry),

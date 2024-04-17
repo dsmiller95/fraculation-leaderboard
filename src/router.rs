@@ -114,13 +114,13 @@ pub fn init_router(db: PgPool) -> Router {
             .route("/leaderboard/styles.css", get(styles))
 
             .route("/leaderboard/games", get(get_games).post(create_game))
-            .route("/leaderboard/games/:id", get(get_game))
+            .route("/leaderboard/games/:game_id", get(get_game))
             .route(
-                "/leaderboard/games/:id/entries",
+                "/leaderboard/games/:game_id/entries",
                 get(get_game_entries).post(create_game_entry),
             )
             .route(
-                "/leaderboard/users/:id/games/:id/entries",
+                "/leaderboard/users/:user_id/games/:game_id/entries",
                 get(get_user_game_entry),
             )
             .layer(Extension(update_stream))
