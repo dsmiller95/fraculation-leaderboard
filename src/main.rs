@@ -10,6 +10,7 @@ mod router;
 mod tests;
 mod todo;
 mod openapi;
+mod app_state;
 
 #[shuttle_runtime::main]
 async fn main(#[shuttle_shared_db::Postgres] db: PgPool) -> shuttle_axum::ShuttleAxum {

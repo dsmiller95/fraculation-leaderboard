@@ -8,6 +8,9 @@ edition = "2021"
 name = "fraculation-leaderboard"
 path = "./src/main.rs"
 
+[[bin]]
+name = "gen-openapi"
+path = "./src/gen_openapi.rs"
 
 [dependencies]
 askama = { version = "0.12.1", features = ["with-axum"] }

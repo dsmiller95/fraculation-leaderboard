@@ -20,7 +20,7 @@ use super::models::*;
 use super::templates;
 use crate::hetero_req_resp::{AcceptType, JsonOrForm};
 use crate::models::MutationKind;
-use crate::{errors::ApiError, router::AppState};
+use crate::{errors::ApiError, app_state::AppState};
 
 pub type LeaderboardStream = Sender<LeaderboardUpdate>;
 

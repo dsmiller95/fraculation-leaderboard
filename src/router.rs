@@ -14,12 +14,9 @@ use crate::todo;
 use tokio::sync::broadcast::channel;
 use tower_http::cors::{Any, CorsLayer};
 use utoipa_rapidoc::RapiDoc;
+use crate::app_state::AppState;
 use crate::openapi::gen_my_openapi;
 
-#[derive(Clone)]
-pub struct AppState {
-    pub db: PgPool,
-}
 
 #[derive(Template)]
 #[template(path = "index.html")]

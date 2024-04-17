@@ -14,7 +14,7 @@ use tokio_stream::{Stream, StreamExt as _};
 
 use super::models::{MutationKind, Todo, TodoNew, TodoUpdate};
 use super::templates;
-use crate::{errors::ApiError, router::AppState};
+use crate::{errors::ApiError, app_state::AppState};
 
 pub type TodosStream = Sender<TodoUpdate>;
 
