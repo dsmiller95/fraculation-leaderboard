@@ -116,7 +116,7 @@ async fn two_scores_with_same_user_conflicts_when_lower() {
 
     assert_eq!(StatusCode::CONFLICT, add_resp.status_code());
     let add_resp_json = add_resp.json_allow_fail::<serde_json::Value>();
-    assert_json_eq!(added_first, json!([add_resp_json]));
+    assert_json_eq!(added_first, json!(add_resp_json));
 
     let all_entries = server
         .get(game_entry_url.as_str())
