@@ -7,6 +7,7 @@ use axum::{
     Extension, Json,
 };
 use serde_json::json;
+use sqlx::PgPool;
 use sqlx::query::QueryAs;
 use sqlx::types::Uuid;
 use tokio::sync::broadcast::Sender;
@@ -110,19 +111,25 @@ pub async fn get_game_entries(
     })
 }
 
-pub async fn get_user_game_entry(
-    accept_type: AcceptType,
-    State(state): State<AppState>,
-    Path((user_id, game_id)): Path<(Uuid, i32)>,
-) -> Result<impl IntoResponse, ApiError> {
+async fn get_user_game_entry_internal(game_id: i32, user_id: Uuid, db: &PgPool) -> Result<LeaderboardEntry, ApiError> {
     let entry = sqlx::query_as::<_, LeaderboardEntry>(
         "SELECT * \
             FROM leaderboard_entries \
             WHERE game_id = $1 \
               AND user_id = $2;")
         .bind(game_id).bind(user_id)
-        .fetch_one(&state.db)
+        .fetch_one(db)
         .await?;
+
+    Ok(entry)
+}
+
+pub async fn get_user_game_entry(
+    accept_type: AcceptType,
+    State(state): State<AppState>,
+    Path((user_id, game_id)): Path<(Uuid, i32)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let entry = get_user_game_entry_internal(game_id, user_id, &state.db).await?;
 
     Ok(match accept_type {
         AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries: vec![entry] }.into_response(),

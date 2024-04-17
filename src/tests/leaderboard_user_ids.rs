@@ -182,3 +182,23 @@ async fn creates_score_with_user_on_two_games_gets_score_by_user_on_games() {
     assert_json_eq!(game_one_entry, added_game_one);
     assert_json_eq!(game_two_entry, added_game_two);
 }
+#[tokio::test]
+async fn gets_404_when_game_or_entry_not_exists() {
+    let server = get_app().await;
+
+    let user_id = get_unique_user_id();
+
+    let missing_all_status = server
+        .get(format!("/leaderboard/users/{}/games/{}/entries", user_id, i32::MAX).as_str())
+        .await
+        .status_code();
+    assert_eq!(StatusCode::NOT_FOUND, missing_all_status);
+
+
+    let game = create_game(&server, "Test Game Description 0189284d1").await;
+    let missing_entry_only_status = server
+        .get(format!("/leaderboard/users/{}/games/{}/entries", user_id, game.id).as_str())
+        .await
+        .status_code();
+    assert_eq!(StatusCode::NOT_FOUND, missing_entry_only_status);
+}
