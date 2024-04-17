@@ -24,6 +24,11 @@ use crate::{errors::ApiError, router::AppState};
 
 pub type LeaderboardStream = Sender<LeaderboardUpdate>;
 
+const NOT_FOUND_RESP: (StatusCode, &str) = (StatusCode::NOT_FOUND, "Not Found");
+
+/// Get the home page
+///
+/// Responds with a htmx template
 pub async fn home() -> impl IntoResponse {
     templates::HelloTemplate
 }
@@ -32,6 +37,16 @@ pub async fn stream() -> impl IntoResponse {
     templates::StreamTemplate
 }
 
+/// Get the game list
+///
+/// Responds with a list of games
+#[utoipa::path(
+    get,
+    path = "/leaderboard/games",
+    responses(
+        (status = 200, description = "Games list", body = Vec<Game>)
+    )
+)]
 pub async fn get_games(
     accept_type: AcceptType,
     State(state): State<AppState>,
@@ -46,6 +61,17 @@ pub async fn get_games(
     })
 }
 
+/// Create a game
+///
+/// Responds with the created game
+#[utoipa::path(
+    post,
+    path = "/leaderboard/games",
+    request_body = GameNew,
+    responses(
+        (status = 200, description = "New Game", body = Game)
+    )
+)]
 pub async fn create_game(
     accept_type: AcceptType,
     State(state): State<AppState>,
@@ -65,23 +91,6 @@ pub async fn create_game(
     })
 }
 
-pub async fn get_game(
-    accept_type: AcceptType,
-    State(state): State<AppState>,
-    Path(game_id): Path<i32>,
-) -> Result<impl IntoResponse, ApiError> {
-    let game = sqlx::query_as::<_, Game>("SELECT * FROM games WHERE id = $1")
-        .bind(game_id)
-        .fetch_one(&state.db)
-        .await?;
-
-    Ok(match accept_type {
-        AcceptType::HTMX => templates::GameTemplate { game }.into_response(),
-        AcceptType::JSON => Json(game).into_response(),
-    })
-}
-
-
 async fn get_game_internal(db: &PgPool, game_id: i32) -> Result<Option<Game>, ApiError> {
     let entry = sqlx::query_as::<_, Game>(
         "SELECT * FROM games WHERE id = $1;")
@@ -92,19 +101,55 @@ async fn get_game_internal(db: &PgPool, game_id: i32) -> Result<Option<Game>, Ap
     Ok(entry)
 }
 
+/// Get a game by id
+///
+/// Responds with full details about the game
+#[utoipa::path(
+    get,
+    path = "/leaderboard/games/{id}",
+    responses(
+        (status = 200, description = "Game", body = Game),
+        (status = 404, description = "Game not found", body = String, example = json!("Not Found")),
+    )
+)]
+pub async fn get_game(
+    accept_type: AcceptType,
+    State(state): State<AppState>,
+    Path(game_id): Path<i32>,
+) -> Result<impl IntoResponse, ApiError> {
+    let Some(game) = get_game_internal(&state.db, game_id).await? else {
+        return Ok(NOT_FOUND_RESP.into_response());
+    };
 
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::GameTemplate { game }.into_response(),
+        AcceptType::JSON => Json(game).into_response(),
+    })
+}
+
+/// Get the entries for a game
+///
+/// Responds with a list of game entries, sorted by score based on the score_sort_mode of the game
+#[utoipa::path(
+    get,
+    path = "/leaderboard/games/{id}/entries",
+    responses(
+        (status = 200, description = "Game Entries list", body = Vec<LeaderboardEntry>),
+        (status = 404, description = "Game not found", body = String, example = json!("Not Found"))
+    )
+)]
 pub async fn get_game_entries(
     accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let game =  get_game_internal(&state.db, game_id).await?;
-    let ordering = match game {
-        None => "DESC",
-        Some(game) => match game.score_sort_mode {
-            GameScoreSortMode::HigherIsBetter => "DESC",
-            GameScoreSortMode::LesserIsBetter  => "ASC",
-        }
+    let Some(game) =  get_game_internal(&state.db, game_id).await? else {
+        return Ok(NOT_FOUND_RESP.into_response());
+    };
+
+    let ordering = match game.score_sort_mode {
+        GameScoreSortMode::HigherIsBetter => "DESC",
+        GameScoreSortMode::LesserIsBetter  => "ASC",
     };
     let sql = format!(
         "SELECT * \
@@ -139,6 +184,17 @@ async fn get_user_game_entry_internal(game_id: i32, user_id: Uuid, db: &PgPool) 
     Ok(entry)
 }
 
+/// Get an entry for a user on a specific game
+///
+/// Responds with a single game entry
+#[utoipa::path(
+    get,
+    path = "/leaderboard/users/{user_id}/games/{game_id}/entries",
+    responses(
+        (status = 200, description = "Game Entry", body = LeaderboardEntry),
+        (status = 404, description = "Game or Entry not found", body = String, example = json!("Not Found")),
+    )
+)]
 pub async fn get_user_game_entry(
     accept_type: AcceptType,
     State(state): State<AppState>,
@@ -147,7 +203,7 @@ pub async fn get_user_game_entry(
     let entry = get_user_game_entry_internal(game_id, user_id, &state.db).await?;
 
     let Some(entry) = entry else {
-        return Ok((StatusCode::NOT_FOUND, "Not Found").into_response());
+        return Ok(NOT_FOUND_RESP.into_response());
     };
 
     Ok(match accept_type {
@@ -181,6 +237,18 @@ async fn try_get_better_or_equal_entry(db: &PgPool, game_id: i32, user_id: Uuid,
     })
 }
 
+/// Create a new game entry for a user
+///
+/// Responds with the created entry, or an existing entry, if new entry is not an improvement.
+#[utoipa::path(
+    post,
+    path = "/leaderboard/games",
+    request_body = LeaderboardEntryNew,
+    responses(
+        (status = 200, description = "New game entry", body = LeaderboardEntry),
+        (status = 409, description = "Old, better, game entry", body = LeaderboardEntry)
+    )
+)]
 pub async fn create_game_entry(
     accept_type: AcceptType,
     State(state): State<AppState>,
