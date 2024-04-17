@@ -124,3 +124,32 @@ async fn two_scores_with_same_user_conflicts_when_lower() {
         .json::<serde_json::Value>();
     assert_json_eq!(all_entries, json!([added_first]));
 }
+
+
+
+#[tokio::test]
+async fn creates_score_with_user_gets_score_by_user() {
+    let server = get_app().await;
+
+    let req = json!({
+        "description": "Test Game Description 88241",
+    });
+
+    let new_game = server
+        .post_json("/leaderboard/games", &req)
+        .await
+        .json::<HasId>();
+
+    let user_id = get_unique_user_id();
+    let req = json!({ "score": 12.0, "user_name": "simnes", "user_id": user_id });
+    let added_first = server
+        .post_json(format!("/leaderboard/games/{}/entries", new_game.id).as_str(), &req)
+        .await
+        .json::<serde_json::Value>();
+
+    let all_entries = server
+        .get(format!("/leaderbaord/users/{}/game/{}/entries", user_id, new_game.id).as_str())
+        .await
+        .json::<serde_json::Value>();
+    assert_json_eq!(all_entries, json!([added_first]));
+}

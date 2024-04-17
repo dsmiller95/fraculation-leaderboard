@@ -1,5 +1,6 @@
 use crate::models::MutationKind;
 use serde::{Deserialize, Serialize};
+use sqlx::types::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, sqlx::Type)]
 #[sqlx(rename_all = "PascalCase")]
@@ -28,6 +29,7 @@ pub struct LeaderboardEntry {
     pub score: f64,
     pub game_id: i32,
     pub user_name: String,
+    pub user_id: Uuid,
     pub free_data: String,
 }
 
@@ -35,6 +37,7 @@ pub struct LeaderboardEntry {
 pub struct LeaderboardEntryNew {
     pub score: f64,
     pub user_name: String,
+    pub user_id: Option<Uuid>,
     pub free_data: Option<String>,
 }
 

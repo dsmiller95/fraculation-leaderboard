@@ -8,6 +8,7 @@ use axum::{
 };
 use serde_json::json;
 use sqlx::query::QueryAs;
+use sqlx::types::Uuid;
 use tokio::sync::broadcast::Sender;
 use tokio_stream::wrappers::BroadcastStream;
 use tokio_stream::{Stream, StreamExt as _};
@@ -28,7 +29,7 @@ pub async fn stream() -> impl IntoResponse {
     templates::StreamTemplate
 }
 
-pub async fn fetch_games(
+pub async fn get_games(
     accept_type: AcceptType,
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -61,7 +62,7 @@ pub async fn create_game(
     })
 }
 
-pub async fn game_home(
+pub async fn get_game(
     accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
@@ -77,7 +78,7 @@ pub async fn game_home(
     })
 }
 
-pub async fn fetch_leaderboard_entries(
+pub async fn get_game_entries(
     accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
@@ -109,6 +110,27 @@ pub async fn fetch_leaderboard_entries(
     })
 }
 
+pub async fn get_user_game_entries(
+    accept_type: AcceptType,
+    State(state): State<AppState>,
+    Path((user_id, game_id)): Path<(Uuid, i32)>,
+) -> Result<impl IntoResponse, ApiError> {
+    let entries = sqlx::query_as::<_, LeaderboardEntry>(
+        "SELECT * \
+            FROM leaderboard_entries \
+            WHERE game_id = $1 \
+              AND user_id = $2\
+            LIMIT 10;")
+        .bind(game_id).bind(user_id)
+        .fetch_all(&state.db)
+        .await?;
+
+    Ok(match accept_type {
+        AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries }.into_response(),
+        AcceptType::JSON => Json(entries).into_response(),
+    })
+}
+
 macro_rules! bind_all {
     // Base case:
     ($i:expr, $x:expr) => (QueryAs::bind($i, $x));
@@ -118,7 +140,7 @@ macro_rules! bind_all {
     )
 }
 
-pub async fn create_leaderboard_entry(
+pub async fn create_game_entry(
     accept_type: AcceptType,
     State(state): State<AppState>,
     Path(game_id): Path<i32>,
