@@ -1,0 +1,1 @@
+cargo test && cargo shuttle deploy --no-test
