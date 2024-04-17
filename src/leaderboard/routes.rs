@@ -148,16 +148,17 @@ pub async fn create_game_entry(
     JsonOrForm(request): JsonOrForm<LeaderboardEntryNew>,
 ) -> Result<impl IntoResponse, ApiError> {
     let leaderboard_entry = sqlx::query_as::<_, LeaderboardEntry>(
-        "INSERT INTO leaderboard_entries (game_id, score, user_name, free_data) \
-        VALUES ($1, $2, $3, $4) \
-        RETURNING id, score, game_id, user_name, free_data",
+        "INSERT INTO leaderboard_entries (game_id, score, user_name, free_data, user_id) \
+        VALUES ($1, $2, $3, $4, $5) \
+        RETURNING id, score, game_id, user_name, free_data, user_id",
     );
     let leaderboard_entry = bind_all!(
         leaderboard_entry,
         game_id,
         request.score,
         request.user_name,
-        request.free_data.unwrap_or("".into())
+        request.free_data.unwrap_or("".into()),
+        request.user_id.unwrap_or(Uuid::new_v4())
     );
     let leaderboard_entry = leaderboard_entry.fetch_one(&state.db).await?;
 
