@@ -16,7 +16,7 @@ pub fn gen_my_openapi() -> utoipa::openapi::OpenApi {
         components(
             schemas(
                 leaderboard::models::Game, leaderboard::models::GameNew, leaderboard::models::GameScoreSortMode,
-                leaderboard::models::LeaderboardEntry, leaderboard::models::LeaderboardEntryNew, leaderboard::models::LeaderboardUpdate,
+                leaderboard::models::LeaderboardEntry, leaderboard::models::LeaderboardEntryNew
             )
         ),
         modifiers(),

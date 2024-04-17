@@ -260,17 +260,6 @@ components:
           nullable: true
         user_name:
           type: string
-    LeaderboardUpdate:
-      type: object
-      required:
-      - mutation_kind
-      - id
-      properties:
-        id:
-          type: integer
-          format: int32
-        mutation_kind:
-          $ref: '#/components/schemas/MutationKind'
 tags:
 - name: leaderboard
   description: Game Leaderboard management API
