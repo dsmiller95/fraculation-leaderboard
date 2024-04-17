@@ -13,11 +13,8 @@ use crate::leaderboard;
 use crate::todo;
 use tokio::sync::broadcast::channel;
 use tower_http::cors::{Any, CorsLayer};
-use utoipa::{
-    openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
-    Modify, OpenApi,
-};
 use utoipa_rapidoc::RapiDoc;
+use crate::openapi::gen_my_openapi;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -40,50 +37,11 @@ pub async fn styles() -> Result<impl IntoResponse, ApiError> {
     Ok(response)
 }
 
-
-
-#[derive(OpenApi)]
-#[openapi(
-    paths(
-        leaderboard::routes::get_games,
-        leaderboard::routes::create_game,
-        leaderboard::routes::get_game,
-        leaderboard::routes::get_game_entries,
-        leaderboard::routes::get_user_game_entry,
-        leaderboard::routes::create_game_entry,
-    ),
-    components(
-        schemas(
-        leaderboard::models::Game, leaderboard::models::GameNew, leaderboard::models::GameScoreSortMode,
-        leaderboard::models::LeaderboardEntry, leaderboard::models::LeaderboardEntryNew, leaderboard::models::LeaderboardUpdate,
-        )
-    ),
-    modifiers(&JsonContentTypeAddon),
-    tags(
-        (name = "leaderboard", description = "Game Leaderboard management API")
-    )
-)]
-struct ApiDoc;
-
-
-struct JsonContentTypeAddon;
-
-impl Modify for JsonContentTypeAddon {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        if let Some(components) = openapi.components.as_mut() {
-            components.add_security_scheme(
-                "api_key",
-                SecurityScheme::ApiKey(ApiKey::Header(ApiKeyValue::new("todo_apikey"))),
-            )
-        }
-    }
-}
-
 pub fn init_router(db: PgPool) -> Router {
     let state = AppState { db };
-
+    let open_api = gen_my_openapi();
     let mut router = Router::new()
-        .merge(RapiDoc::with_openapi("/api-docs/openapi2.json", ApiDoc::openapi()).path("/rapidoc"))
+        .merge(RapiDoc::with_openapi("/api-docs/openapi2.json", open_api).path("/rapidoc"))
         .route("/", get(root_home))
         .route("/styles.css", get(styles));
     {
