@@ -110,24 +110,23 @@ pub async fn get_game_entries(
     })
 }
 
-pub async fn get_user_game_entries(
+pub async fn get_user_game_entry(
     accept_type: AcceptType,
     State(state): State<AppState>,
     Path((user_id, game_id)): Path<(Uuid, i32)>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let entries = sqlx::query_as::<_, LeaderboardEntry>(
+    let entry = sqlx::query_as::<_, LeaderboardEntry>(
         "SELECT * \
             FROM leaderboard_entries \
             WHERE game_id = $1 \
-              AND user_id = $2\
-            LIMIT 10;")
+              AND user_id = $2;")
         .bind(game_id).bind(user_id)
-        .fetch_all(&state.db)
+        .fetch_one(&state.db)
         .await?;
 
     Ok(match accept_type {
-        AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries }.into_response(),
-        AcceptType::JSON => Json(entries).into_response(),
+        AcceptType::HTMX => templates::LeaderboardEntriesTemplate { entries: vec![entry] }.into_response(),
+        AcceptType::JSON => Json(entry).into_response(),
     })
 }
 

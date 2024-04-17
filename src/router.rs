@@ -76,7 +76,7 @@ pub fn init_router(db: PgPool) -> Router {
             )
             .route(
                 "/leaderboard/users/:id/games/:id/entries",
-                get(get_user_game_entries),
+                get(get_user_game_entry),
             )
             .layer(Extension(update_stream))
     }
