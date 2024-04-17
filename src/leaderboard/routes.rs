@@ -165,17 +165,17 @@ macro_rules! bind_all {
     )
 }
 
-async fn try_get_better_entry(db: &PgPool, game_id: i32, user_id: Uuid, better_than: f64) -> Result<Option<LeaderboardEntry>, ApiError> {
+async fn try_get_better_or_equal_entry(db: &PgPool, game_id: i32, user_id: Uuid, better_than: f64) -> Result<Option<LeaderboardEntry>, ApiError> {
     let existing_entry = get_user_game_entry_internal(game_id, user_id, db).await?;
     let Some(existing_entry) = existing_entry else { return Ok(None); };
     let Some(game) = get_game_internal(db, game_id).await? else { panic!("Game not found") };
 
     let existing_score = existing_entry.score;
-    let is_existing_better = match game.score_sort_mode{
-        GameScoreSortMode::HigherIsBetter => existing_score > better_than,
-        GameScoreSortMode::LesserIsBetter => existing_score < better_than,
+    let is_existing_better_or_equal = match game.score_sort_mode{
+        GameScoreSortMode::HigherIsBetter => existing_score >= better_than,
+        GameScoreSortMode::LesserIsBetter => existing_score <= better_than,
     };
-    Ok(match is_existing_better {
+    Ok(match is_existing_better_or_equal {
         true => Some(existing_entry),
         false => None,
     })
@@ -189,7 +189,7 @@ pub async fn create_game_entry(
     JsonOrForm(request): JsonOrForm<LeaderboardEntryNew>,
 ) -> Result<impl IntoResponse, ApiError> {
     if let Some(ex_user_id) = request.user_id {
-        if let Some(better_entry) = try_get_better_entry(&state.db, game_id, ex_user_id, request.score).await? {
+        if let Some(better_entry) = try_get_better_or_equal_entry(&state.db, game_id, ex_user_id, request.score).await? {
             return Ok((StatusCode::CONFLICT, Json(better_entry)).into_response())
         }
     }
